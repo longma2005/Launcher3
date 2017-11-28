@@ -177,4 +177,13 @@ public class LauncherAppState {
     public static boolean isDogfoodBuild() {
         return getInstance().mBuildInfo.isDogfoodBuild();
     }
+
+    /**
+     * 屏蔽安装第二层安装列表
+     * @return
+     */
+    public static boolean isDisableAllApps() {
+        // Returns false on non-dogfood builds.
+        return true;
+    }
 }

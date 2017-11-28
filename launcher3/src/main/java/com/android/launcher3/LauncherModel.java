@@ -1422,6 +1422,28 @@ public class LauncherModel extends BroadcastReceiver
         return mAllAppsLoaded;
     }
 
+    private void verifyApplications() {
+        final Context context = mApp.getContext();
+
+        // Cross reference all the applications in our apps list with items in the workspace
+        ArrayList<ItemInfo> tmpInfos;
+        ArrayList<ItemInfo> added = new ArrayList<ItemInfo>();
+        synchronized (sBgLock) {
+            for (AppInfo app : mBgAllAppsList.data) {
+                tmpInfos = getItemInfoForComponentName(app.componentName, app.user);
+                if (tmpInfos.isEmpty()) {
+                    // We are missing an application icon, so add this to the workspace
+                    added.add(app);
+                    // This is a rare event, so lets log it
+                    Log.e(TAG, "Missing Application on load: " + app);
+                }
+            }
+        }
+        if (!added.isEmpty()) {
+            addAndBindAddedWorkspaceItems(context, added);//7.0 虽然去掉了去抽屉的代码，但留了这个方法给我们。
+        }
+    }
+
     /**
      * Runnable for the thread that loads the contents of the launcher:
      *   - workspace icons
@@ -1557,6 +1579,12 @@ public class LauncherModel extends BroadcastReceiver
                 // second step
                 if (DEBUG_LOADERS) Log.d(TAG, "step 2: loading all apps");
                 loadAndBindAllApps();
+
+                //添加 @{
+                if (LauncherAppState.isDisableAllApps()) {
+                    verifyApplications();
+                }
+                //添加 }@
             }
 
             // Clear out this reference, otherwise we end up holding it until all of the
@@ -2806,7 +2834,7 @@ public class LauncherModel extends BroadcastReceiver
                 // Fail if we don't have any apps
                 // TODO: Fix this. Only fail for the current user.
                 if (apps == null || apps.isEmpty()) {
-                    return;
+                    continue;
                 }
 
                 // Create the ApplicationInfos
@@ -3079,7 +3107,14 @@ public class LauncherModel extends BroadcastReceiver
                     new HashMap<ComponentName, AppInfo>();
 
             if (added != null) {
-                addAppsToAllApps(context, added);
+                // 添加 @{
+                if(LauncherAppState.isDisableAllApps()){
+                    final ArrayList<ItemInfo> addedInfos = new ArrayList<ItemInfo>(added);
+                    addAndBindAddedWorkspaceItems(context, addedInfos);
+                }else{
+                    // 添加 }@
+                    addAppsToAllApps(context, added);
+                }
                 for (AppInfo ai : added) {
                     addedOrUpdatedApps.put(ai.componentName, ai);
                 }
