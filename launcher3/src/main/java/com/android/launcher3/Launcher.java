@@ -135,6 +135,10 @@ public class Launcher extends Activity
     static final String TAG = "Launcher";
     static final boolean LOGD = false;
 
+    // 去掉引导页
+    static final boolean DISABLE_CLINGS = true;
+    static final boolean DISABLE_SEARCHBOX = true;
+
     static final boolean PROFILE_STARTUP = false;
     static final boolean DEBUG_WIDGETS = true;
     static final boolean DEBUG_STRICT_MODE = false;
@@ -3499,6 +3503,10 @@ public class Launcher extends Activity
     }
 
     public View getOrCreateQsbBar() {
+        if (DISABLE_SEARCHBOX){
+            return null;
+        }
+
         if (mLauncherCallbacks != null && mLauncherCallbacks.providesSearch()) {
             return mLauncherCallbacks.getQsbBar();
         }
